@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <title>我的代码</title>
+</head>
+<body style="background-image: url('../vue/static/images/background.jpg');
+		background-size: cover;
+		background-repeat: no-repeat;">
+
+    <div id="app">
+        <el-menu
+            class="el-menu-demo"
+            mode="horizontal"
+            background-color="#545c64"
+            text-color="#fff"
+            active-text-color="#ffd04b">
+            <el-menu-item index="1" style="pointer-events: none;">MyCode</el-menu-item>
+            <el-submenu index="2">
+            <template slot="title">我的工作台</template>
+            <el-menu-item index="2-1" @click="addcode()">添加代码</el-menu-item>
+            <el-menu-item index="2-2" @click="runcode()">在线运行</el-menu-item>
+            </el-submenu>
+            <el-menu-item index="3" @click="allcodes()">代码</el-menu-item>
+            <el-menu-item index="4" @click="getallusers()">用户列表</el-menu-item>
+            <el-menu-item index="5" @click="discuss()">讨论</el-menu-item>
+            <el-submenu index="6" style="margin-left:60%;">
+                <template slot="title">{{ username }}</template>
+                <el-menu-item index="3-1" @click="logout()">退出登录</el-menu-item>
+                <el-menu-item index="3-2" @click="update_user()">修改信息</el-menu-item>
+            </el-submenu>
+        </el-menu>
+
+            <div style="padding-top: 2%; 
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            ">
+                <el-card class="box-card" style="width: 60%; background-color: rgba(255, 255, 255, 0.5); border: none;">
+                    <div style="display: flex; justify-content: flex-end; align-items: center;">
+                        <el-input
+                            placeholder="请输入标题"
+                            v-model="search_title"
+                            style="width: 20%;"
+                        >
+                            <i slot="prefix" class="el-input__icon el-icon-search"></i>
+                        </el-input>
+                        <el-button icon="el-icon-search" circle style="margin-left: 1%;" @click="search()"></el-button>
+                    </div>
+                    <p></p>
+                    <el-table
+                    :data="codes"
+                    stripe
+                    style="width: 100%; border-radius: 10px;"
+                    :header-cell-style="{background:'#eef1f6',color:'#606266'}"
+                    >
+                        <el-table-column
+                        prop="codeId"
+                        label="编号"
+                        width="100vw">
+                        </el-table-column>
+                        <el-table-column
+                        prop="title"
+                        label="标题"
+                        width="180">
+                        </el-table-column>
+                        <el-table-column
+                            prop="code"
+                            label="代码"
+                            width="300"
+                        >
+                            <template slot-scope="scope">
+                                <div style="white-space: pre-wrap;max-height: 50px; overflow-y: auto;">{{ scope.row.code }}</div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                        >
+                        <template slot-scope="scope">
+                            <el-button type="primary" icon="el-icon-edit" circle @click="dialogVisible = true;form_id(scope.row)"></el-button>
+                            <el-button type="danger" icon="el-icon-delete" circle @click="delete_code(scope.row.codeId)"></el-button>
+                        </template>
+                        </el-table-column>
+                        <el-table-column>
+                            <template slot-scope="scope">
+                                <el-button @click="to_run_code(scope.row.codeId)" type="info">在线运行</el-button>
+                            </template>
+                        </el-table-column>
+                </el-card>
+            </div>
+
+            <el-dialog
+                :visible.sync="dialogVisible"
+                width="30%"
+                :before-close="handleClose">
+                <el-form ref="form" :model="form" label-width="80px">
+                    <el-form-item label="标题">
+                      <el-input v-model="form.title"></el-input>
+                    </el-form-item>
+                    <el-form-item label="代码">
+                        <el-input type="textarea" style="height: 300px;overflow:scroll;" :rows="13" v-model="form.code"></el-input>
+                    </el-form-item>
+                </el-form>
+                <span slot="footer" class="dialog-footer">
+                    <el-button @click="dialogVisible = false;">取 消</el-button>
+                    <el-button type="primary" @click="dialogVisible = false;modify_code(form);">修 改</el-button>
+                </span>
+            </el-dialog>
+
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+        <script>
+            axios.defaults.withCredentials = true;
+            new Vue({
+                el:'#app',
+                data:{
+                    codes:{
+                        codeId:null,
+                        title:'',
+                        code:'',
+                    },
+                    form:{
+                        codeId:null,
+                        title:'',
+                        code:'',
+                    },
+                    dialogVisible: false,
+                    username:'',
+                    search_title:'',
+                },
+                methods:{
+                    show(){
+                        axios.get('http://localhost:8000/code/list').then(res => {
+                                if (res.data.isOk) {
+                                    this.codes = res.data.codes;
+                                    console.log(res.data.codes);
+                                }
+                                else 
+                                {
+                                    alert(res.data.msg);
+                                    location.href="login.html";
+                                }
+                            })
+                        },
+                        addcode(){
+                            location.href='add.html';
+                        },
+                        runcode(){
+                            location.href='runcode.html';
+                        },
+                        to_run_code(codeId){
+                            location.href=`runcode.html?codeId=${codeId}`;
+                        },
+                        delete_code(id) {
+                            console.log(id);
+                            if (!confirm('是否删除')) {
+                                return;
+                            }
+                            axios.get('http://localhost:8000/code/del', { params: { id } }).then(res => {
+                                alert(res.data.msg);
+                                this.show();
+                            })
+                        },
+                        modify_code(form) {
+                            if(!confirm('是否修改')){
+                                return;
+                            }
+                            let fd = new FormData();
+                            fd.append('title',form.title);
+                            fd.append('code',form.code);
+                            fd.append('codeId',form.codeId);
+                            console.log(fd);
+                            axios.post('http://localhost:8000/code/update' , fd ).then(res =>{
+                                alert(res.data.msg);
+                            });
+                            location.reload();
+                        },
+                        form_id(code){
+                            this.form = JSON.parse(JSON.stringify(code));
+                        },
+                        handleClose(done) {
+                            this.$confirm('确认关闭？')
+                            .then(_ => {
+                                done();
+                            })
+                            .catch(_ => {});
+                        },
+                        logout(){
+                            axios.get('http://localhost:8000/user/logout').then(res =>{
+                                alert(res.data.msg);
+                                location.href = "login.html";
+                            })
+                        },
+                        update_user(){
+                            location.href = "userinfo.html";
+                        },
+                        search(){
+                            let fd = new FormData();
+                            fd.append('title', this.search_title);
+                            axios.post('http://localhost:8000/code/us' , fd).then(res => {
+                                if (res.data.isOk) {
+                                    console.log(res.data.codes);
+                                    this.codes = res.data.codes;
+                                }
+                            });
+                        },
+                        allcodes(){
+                            location.href = "allcodelist.html";
+                        },
+                        getallusers(){
+                            location.href = "userlist.html";
+                        },
+                        discuss(){
+                            location.href = 'commitlist.html';
+                        }
+                    },
+                    created(){
+                    axios.get('http://localhost:8000/user/islogin').then(res => {
+                        if (!res.data.isOk)
+                        {
+                            alert(res.data.msg);
+                            location.href="login.html";
+                        }
+                        else{
+                            this.username = res.data.username;
+                        }
+                    })
+                    this.show();
+                }
+            })
+        </script>
+    </body>
+</html>

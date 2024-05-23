@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <title>代码</title>
+</head>
+<body style="background-image: url('../vue/static/images/background.jpg');
+		background-size: cover;
+		background-repeat: no-repeat;">
+
+    <div id="app">
+        <el-menu
+            class="el-menu-demo"
+            mode="horizontal"
+            background-color="#545c64"
+            text-color="#fff"
+            active-text-color="#ffd04b">
+            <el-menu-item index="1" style="pointer-events: none;">MyCode</el-menu-item>
+            <el-submenu index="2">
+            <template slot="title">我的工作台</template>
+            <el-menu-item index="2-1" @click="addcode()">添加代码</el-menu-item>
+            <el-menu-item index="2-2" @click="codelist()">代码列表</el-menu-item>
+            <el-menu-item index="2-3" @click="runcode()">在线运行</el-menu-item>
+            </el-submenu>
+            <el-menu-item index="3" @click="allcodes()">代码</el-menu-item>
+            <el-menu-item index="4" @click="getallusers()">用户列表</el-menu-item>
+            <el-menu-item index="5" type="pointer-events:none;">讨论</el-menu-item>
+            <el-submenu index="6" style="margin-left:60%;">
+                <template slot="title">{{ username }}</template>
+                <el-menu-item index="3-1" @click="logout()">退出登录</el-menu-item>
+                <el-menu-item index="3-2" @click="update_user()">修改信息</el-menu-item>
+            </el-submenu>
+        </el-menu>
+
+            <div style="padding-top: 2%; 
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            ">
+                <el-card class="box-card" style="width: 60%; background-color: rgba(255, 255, 255, 0.5); border: none;">
+                    <div style="display: flex; justify-content: flex-end; align-items: center;">
+                        <el-input
+                            placeholder="请输入想搜索的用户id"
+                            v-model="search_id"
+                            style="width: 20%;"
+                        >
+                            <i slot="prefix" class="el-input__icon el-icon-search"></i>
+                        </el-input>
+                        <el-button icon="el-icon-search" circle style="margin-left: 1%;" @click="search()"></el-button>
+                    </div>
+                    <p></p>
+                    <el-table
+                    :data="commits"
+                    stripe
+                    style="width: 100%; border-radius: 10px;"
+                    :header-cell-style="{background:'#eef1f6',color:'#606266'}"
+                    >
+                        <el-table-column
+                        prop="commitId"
+                        label="编号">
+                        </el-table-column>
+                        <el-table-column
+                        prop="context"
+                        label="内容">
+                        </el-table-column>
+                        <el-table-column
+                        prop="userId"
+                        label="作者编号">
+                        </el-table-column>
+                        <el-table-column
+                        v-if="userid === userId">
+                        asds
+                        </el-table-column>
+                </el-card>
+            </div>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+        <script>
+            axios.defaults.withCredentials = true;
+            new Vue({
+                el:'#app',
+                data:{
+                    commits:{
+                        commitId:null,
+                        context:'',
+                        userId:'',
+                    },
+                    username:'',
+                    userid:null,
+                    search_id:'',
+                },
+                methods:{
+                    show(){
+                        axios.get('http://localhost:8000/commit/all').then(res => {
+                                if (res.data.isOk) {
+                                    this.commits = res.data.commits;
+                                    console.log(res.data.commits);
+                                }
+                                else 
+                                {
+                                    alert(res.data.msg);
+                                    location.href="login.html";
+                                }
+                            })
+                        },
+                        addcode(){
+                            location.href='add.html';
+                        },
+                        runcode(){
+                            location.href='runcode.html';
+                        },
+                        logout(){
+                            axios.get('http://localhost:8000/user/logout').then(res =>{
+                                alert(res.data.msg);
+                                location.href = "login.html";
+                            })
+                        },
+                        update_user(){
+                            location.href = "userinfo.html";
+                        },
+                        search(){
+                            if(this.search_id === '')
+                            {
+                                this.show();
+                                return;
+                            }
+                            let fd = new FormData();
+                            fd.append('userId', this.search_id);
+                            axios.post('http://localhost:8000/commit/search' , fd).then(res => {
+                                if (res.data.isOk) {
+                                    this.commits = res.data.commits;
+                                }
+                            });
+                        },
+                        allcodes(){
+                            location.href = "allcodelist.html";
+                        },
+                        codelist() {
+                            location.href = 'codelist.html';
+                        },
+                        getallusers(){
+                            location.href = "userlist.html";
+                        }
+                    },
+                    created(){
+                    axios.get('http://localhost:8000/user/islogin').then(res => {
+                        if (!res.data.isOk)
+                        {
+                            alert(res.data.msg);
+                            location.href="login.html";
+                        }
+                        else{
+                            this.username = res.data.username;
+                            this.userid = res.data.userId;
+                        }
+                    })
+                    this.show();
+                }
+            })
+        </script>
+    </body>
+</html>

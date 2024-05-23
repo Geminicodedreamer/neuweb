@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <title></title>
+</head>
+<body style="background-image: url('../vue/static/images/background.jpg');
+background-size: cover;
+background-repeat: no-repeat;">
+<div id="app">
+    <el-menu
+            class="el-menu-demo"
+            mode="horizontal"
+            background-color="#545c64"
+            text-color="#fff"
+            active-text-color="#ffd04b">
+            <el-menu-item index="1"  style="pointer-events: none;">MyCode</el-menu-item>
+            <el-submenu index="2">
+            <template slot="title">我的工作台</template>
+            <el-menu-item index="2-1" @click="addcode()">添加代码</el-menu-item>
+            <el-menu-item index="2-2" @click="codelist()">代码列表</el-menu-item>
+            </el-submenu>
+            <el-menu-item index="3" @click="allcodes()">代码</el-menu-item>
+            <el-menu-item index="4" @click="getallusers()">用户列表</el-menu-item>
+            <el-menu-item index="5" @click="discuss()">讨论</el-menu-item>
+            <el-submenu index="6" style="margin-left:60%;">
+                <template slot="title">{{ username }}</template>
+                <el-menu-item index="3-1" @click="logout()">退出登录</el-menu-item>
+                <el-menu-item index="3-2" @click="update_user()">修改信息</el-menu-item>
+            </el-submenu>
+        </el-menu>
+
+            <div style="padding-top: 2%; 
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            ">
+                <el-card class="box-card" style="width: 60%; background-color: rgba(255, 255, 255, 0.5); border: none;">
+                <div style="margin: 20px;"></div>
+                <el-form :label-position="labelPosition" label-width="80px" :model="codeForm" class="demo-ruleForm">
+                    <el-form-item label="代码">
+                        <div style="width: 100%;border-color: black;">
+                            <div id="editor" style="min-height: 400px; width: 100%;"></div>
+                        </div>
+                    </el-form-item>
+                    <el-form-item style="display: flex; justify-content: flex-end;">
+                        <el-button type="primary" @click.prevent="RunCode()" plain>运行</el-button>
+                    </el-form-item>
+                    <el-form-item label="输入">
+                        <el-input v-model="codeForm.input"></el-input>
+                    </el-form-item>
+                    <el-form-item label="输出">
+                        <el-input type="textarea" v-model="codeForm.output"></el-input>
+                    </el-form-item>
+                </el-form>
+            </el-card>
+        </div>
+</div>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    axios.defaults.withCredentials = true;
+    new Vue({
+        el: '#app',
+        data: {
+            labelPosition: 'right',
+            codeForm:{
+                code: '',
+                input:'',
+                output: '',
+            },
+            error_msg: '',
+            editor: null,
+            username: null,
+            userId: null,
+        },
+        mounted() {
+            // 初始化Ace编辑器
+            this.editor = ace.edit("editor");
+            this.editor.setTheme("ace/theme/xcode");
+            this.editor.session.setMode("ace/mode/c_cpp");
+            this.editor.setFontSize(16);
+
+            // 监听Ace编辑器内容变化，并同步到Vue数据中
+            this.editor.getSession().on('change', () => {
+                this.codeForm.code = this.editor.getValue();
+            });
+        },
+        methods: {
+            RunCode() {
+                let fd = new FormData();
+                fd.append('code', this.codeForm.code);
+                fd.append('input', this.codeForm.input);
+                axios.post('http://localhost:8000/code/run', fd).then((response) => {
+                    console.log(response.data.output);
+                    this.codeForm.output = response.data.output;
+                }).catch((error) => {
+                    console.log(response.data.output + " " + error.response.data.message);
+                    this.codeForm.output = "运行出错：" + error.response.data.message;
+                });
+            },
+            fillCode(codeId) {
+                axios.get('http://localhost:8000/code/get', { params : {codeId} }).then((res) => {
+                    if(res.data.isOk){
+                        if(this.userId === res.data.code.userId){
+                            this.codeForm.code = res.data.code.code;
+                            this.editor.setValue(res.data.code.code, -1);
+                            this.editor.clearSelection(); 
+                            this.$message(res.data.msg);
+                        }
+                        else{
+                            this.$message("无权限查看该代码");
+                        }
+                    }else{
+                        this.$message(res.data.msg);
+                    }
+                });
+            },
+            codelist() {
+                location.href = 'codelist.html';
+            },
+            logout(){
+                axios.get('http://localhost:8000/user/logout').then(res =>{
+                    alert(res.data.msg);
+                    location.href = "login.html";
+                })
+            },
+            update_user(){
+                location.href = "userinfo.html";
+            },
+            addcode(){
+                location.href='add.html';
+            },
+            allcodes(){
+                location.href = "allcodelist.html";
+            },
+            getallusers(){
+                location.href = "userlist.html";
+            },
+            discuss(){
+                location.href = 'commitlist.html';
+            }
+        },
+        created(){
+            axios.get('http://localhost:8000/user/islogin').then(res => {
+                        if (!res.data.isOk)
+                        {
+                            alert(res.data.msg);
+                            location.href="login.html";
+                        }
+                        else{
+                            this.username = res.data.username;
+                            this.userId = res.data.userId;
+                        }
+                    });
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeId = urlParams.get('codeId');
+            if (codeId) {
+                this.fillCode(codeId);
+            }
+        }
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	</head>
+	<body style="background-image: url('../vue/static/images/background.jpg');
+		background-size: cover;
+		background-repeat: no-repeat;">
+		<div id="app">
+			<el-menu
+				class="el-menu-demo"
+				mode="horizontal"
+				background-color="#545c64"
+				text-color="#fff"
+				active-text-color="#ffd04b">
+				<el-menu-item index="1" style="pointer-events: none;">MyCode</el-menu-item>
+				<el-submenu index="2">
+				<template slot="title">我的工作台</template>
+				<el-menu-item index="2-1" @click="addcode()">添加代码</el-menu-item>
+				<el-menu-item index="2-2" @click="codelist()">代码列表</el-menu-item>
+				<el-menu-item index="2-3" @click="runcode()">在线运行</el-menu-item>
+				</el-submenu>
+				<el-menu-item index="3" @click="allcodes()">代码</el-menu-item>
+				<el-menu-item index="4" @click="getallusers()">用户列表</el-menu-item>
+            	<el-menu-item index="5" @click="discuss()">讨论</el-menu-item>
+            	<el-submenu index="6" style="margin-left:60%;">
+					<template slot="title">{{ username }}</template>
+					<el-menu-item index="3-1" @click="logout()">退出登录</el-menu-item>
+				</el-submenu>
+			</el-menu>
+			<div style="display: flex;
+			justify-content: center; 
+			align-items: center;
+			height: 100vh;
+			">
+		
+			<el-card class="box-card" style="width: 40%;height: 60%;border-radius: 20%; background-color: rgba(0, 0, 0, 0.5); border: none;">
+				<div style="text-align: center; color: white; font-family: 'PingFang SC'; font-size: 30px; font-weight: bolder;">
+									基本信息
+							</div>
+							<el-row style="display: flex; align-items: center; padding-top: 4%;">
+						<el-col :offset="5" :span="12">
+							<el-form :model="userForm" :rules="rules" ref="userForm" label-width="100px" class="demo-ruleForm">
+								<el-form-item label="用户名" prop="userName" style="padding-top: 5%;">
+									<el-input v-model="userForm.userName" style="padding-left: 10%;"></el-input>
+								</el-form-item>
+								<el-form-item label="手机号" prop="tel" style="padding-top: 5%;">
+									<el-input v-model="userForm.tel" style="padding-left: 10%;"></el-input>
+								</el-form-item>
+								<el-form-item label="密码" prop="loginPwd" style="padding-top: 5%;">
+									<el-input type="password" v-model="userForm.loginPwd" style="padding-left: 10%;"></el-input>
+								</el-form-item>
+								<el-form-item style="padding-top: 7%;">
+									<el-button type="primary" style="width: 100%;" @click="modify()">修改</el-button>
+								</el-form-item>
+								<el-form-item style="padding-top: 2%;">
+									<el-button type="danger" style="width: 100%;" @click="removeUser()">注销</el-button>
+								</el-form-item>
+							</el-form>
+						</el-col>
+				</el-row>
+			</el-card>
+		</div>
+		</div>
+		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+		<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<script>
+			axios.defaults.withCredentials = true;
+			new Vue({
+				el: '#app',
+				data: {
+					userForm: {
+						userId:'',
+						tel: '',
+						loginPwd: '',
+						userName: '',
+					},
+					username: '',
+					rules: {
+						tel: [{
+							required: true,
+							message: '手机号不能为空',
+							trigger: 'blur'
+						}
+						],
+						loginPwd: [{
+							required: true,
+							message: '密码不能为空',
+							trigger: 'blur'
+						}],
+						userName: [{
+							required: true,
+							message: '用户名不能为空',
+							trigger: 'blur'
+						}]
+					}
+				},
+				methods: {
+					modify() {
+						this.$refs.userForm.validate((valid) => {
+							if (valid) {
+								let fd = new FormData();
+								fd.append('userId', this.userForm.userId);
+								fd.append('tel', this.userForm.tel);
+								fd.append('loginPwd', this.userForm.loginPwd);
+								fd.append('userName', this.userForm.userName);
+								axios.post('http://localhost:8000/user/update', fd).then(res => {
+									if (res.data.isOk) {
+										this.$message(res.data.msg);
+										this.show();
+									} else {
+										this.$message(res.data.msg);
+									}
+								})
+							} else {
+								
+								return false;
+							}
+						});
+					},
+					logout(){
+						axios.get('http://localhost:8000/user/logout').then(res =>{
+							alert(res.data.msg);
+							location.href = "login.html";
+						})
+					},
+					addcode(){
+						location.href='add.html';
+					},
+					codelist() {
+						location.href = 'codelist.html';
+					},
+                        allcodes(){
+                            location.href = "allcodelist.html";
+                        },
+					runcode(){
+                            location.href='runcode.html';
+                        },
+					removeUser(){
+						let userId = this.userForm.userId;
+						axios.get('http://localhost:8000/user/del', { params : { userId }}).then(res => {
+							if (res.data.isOk) {
+								this.$message(res.data.msg);
+								location.href="login.html";
+							} else {
+								this.$message(res.data.msg);
+							}
+						})
+					},
+                        getallusers(){
+                            location.href = "userlist.html";
+                        },
+					show(){
+						axios.get('http://localhost:8000/user/userinfo').then(res => {
+						if (res.data.isOk) {
+							this.userForm = res.data.user;
+							this.username = this.userForm.userName;
+							this.userForm.loginPwd = '';
+						} else {
+							alert(res.data.msg);
+							location.href="login.html";
+						}
+					})
+					},
+					discuss(){
+						location.href = 'commitlist.html';
+					}
+				},
+				created(){
+					this.show();
+				}
+			})
+		</script>
+	</body>
+</html>
