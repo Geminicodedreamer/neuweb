@@ -48,7 +48,7 @@ background-repeat: no-repeat;">
                         <el-button type="primary" @click.prevent="RunCode()" plain>运行</el-button>
                     </el-form-item>
                     <el-form-item label="输入">
-                        <el-input v-model="codeForm.input"></el-input>
+                        <el-input type="textarea" v-model="codeForm.input"></el-input>
                     </el-form-item>
                     <el-form-item label="输出">
                         <el-input type="textarea" v-model="codeForm.output"></el-input>

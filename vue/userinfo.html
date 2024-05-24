@@ -143,7 +143,7 @@
 						let userId = this.userForm.userId;
 						axios.get('http://localhost:8000/user/del', { params : { userId }}).then(res => {
 							if (res.data.isOk) {
-								this.$message(res.data.msg);
+								alert(res.data.msg);
 								location.href="login.html";
 							} else {
 								this.$message(res.data.msg);

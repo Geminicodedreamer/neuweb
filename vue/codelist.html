@@ -93,17 +93,17 @@
                 :visible.sync="dialogVisible"
                 width="30%"
                 :before-close="handleClose">
-                <el-form ref="form" :model="form" label-width="80px">
-                    <el-form-item label="标题">
+                <el-form ref="form" :model="form" :rules="rules" label-width="80px" class="demo-ruleForm">
+                    <el-form-item label="标题" prop="title">
                       <el-input v-model="form.title"></el-input>
                     </el-form-item>
-                    <el-form-item label="代码">
+                    <el-form-item label="代码" prop="code">
                         <el-input type="textarea" style="height: 300px;overflow:scroll;" :rows="13" v-model="form.code"></el-input>
                     </el-form-item>
                 </el-form>
                 <span slot="footer" class="dialog-footer">
                     <el-button @click="dialogVisible = false;">取 消</el-button>
-                    <el-button type="primary" @click="dialogVisible = false;modify_code(form);">修 改</el-button>
+                    <el-button type="primary" @click="modify_code(form);">修 改</el-button>
                 </span>
             </el-dialog>
 
@@ -121,6 +121,20 @@
                         codeId:null,
                         title:'',
                         code:'',
+                    },
+                    rules: 
+                    {
+                        title: [{
+                            required: true,
+                            message: '标题不能为空',
+                            trigger: 'blur'
+                        }
+                        ],
+                        code: [{
+                            required: true,
+                            message: '代码不能为空',
+                            trigger: 'blur'
+                        }]
                     },
                     form:{
                         codeId:null,
@@ -165,18 +179,27 @@
                             })
                         },
                         modify_code(form) {
-                            if(!confirm('是否修改')){
-                                return;
-                            }
-                            let fd = new FormData();
-                            fd.append('title',form.title);
-                            fd.append('code',form.code);
-                            fd.append('codeId',form.codeId);
-                            console.log(fd);
-                            axios.post('http://localhost:8000/code/update' , fd ).then(res =>{
-                                alert(res.data.msg);
+                            this.$refs.form.validate((valid) => {
+                                if(valid){
+                                    if(!confirm('是否修改')){
+                                        return;
+                                    }
+                                    let fd = new FormData();
+                                    fd.append('title',form.title);
+                                    fd.append('code',form.code);
+                                    fd.append('codeId',form.codeId);
+                                    console.log(fd);
+                                    axios.post('http://localhost:8000/code/update' , fd ).then(res =>{
+                                        alert(res.data.msg);
+                                    });
+                                    dialogVisible = false;
+                                    location.reload();
+                                }
+                                else {
+                                    alert("请填写完整");    
+                                    return false;
+                                }
                             });
-                            location.reload();
                         },
                         form_id(code){
                             this.form = JSON.parse(JSON.stringify(code));
