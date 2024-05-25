@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.ToolProvider;
+import javax.tools.*;
 import java.io.*;
 import java.util.*;
 
@@ -148,9 +145,10 @@ public class CodeController {
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
             Iterable<? extends JavaFileObject> compilationUnits = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(sourceFile));
-            JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, null, null, compilationUnits);
+            DiagnosticCollector<JavaFileObject> diagnosticCollector = new DiagnosticCollector<>();
+            JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, diagnosticCollector, null, null, compilationUnits);
             if (!task.call()) {
-                throw new CompilationError("Failed to compile code");
+                throw new CompilationError("Failed to compile code", diagnosticCollector);
             }
             fileManager.close();
 
@@ -178,22 +176,28 @@ public class CodeController {
 
             return outputBuilder.toString();
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
             return "Error: " + e.getMessage();
         } catch (CompilationError e) {
-            e.printStackTrace();
-            return "Compilation Error: " + e.getMessage();
+            return e.getCompilerErrorMessage();
         }
     }
 
     class CompilationError extends Exception {
-        public CompilationError(String message) {
+        private final DiagnosticCollector<JavaFileObject> diagnosticCollector;
+
+        public CompilationError(String message, DiagnosticCollector<JavaFileObject> diagnosticCollector) {
             super(message);
+            this.diagnosticCollector = diagnosticCollector;
+        }
+
+        public String getCompilerErrorMessage() {
+            StringBuilder errorMessage = new StringBuilder();
+            for (Diagnostic<? extends JavaFileObject> diagnostic : diagnosticCollector.getDiagnostics()) {
+                errorMessage.append(diagnostic.toString()).append("\n");
+            }
+            return errorMessage.toString();
         }
     }
-
-
-
 
     public void setBiz(CodeBiz biz) {
         this.biz = biz;

@@ -40,9 +40,25 @@ public class CommitController {
         return result;
     }
 
+    @RequestMapping("/update")
+    public Map update(int commitId , String context)
+    {
+        Map result = new HashMap();
+        if(this.biz.updateCommit(context, commitId) > 0)
+        {
+            result.put("isOk" , true);
+            result.put("msg" , "修改成功");
+        }
+        else {
+            result.put("isOk" , false);
+            result.put("msg" , "修改失败");
+        }
+        return result;
+    }
+
     @RequestMapping("/search")
-    public Map searchCommitByUserId(int  userId){
-        List<Commit> list = biz.selectCommitsByUserId(userId);
+    public Map searchCommitByUserId(String context){
+        List<Commit> list = biz.selectCommitsByContext(context);
         Map result = new HashMap<>();
         result.put("isOk",true);
         result.put("msg","查询成功");
@@ -51,9 +67,9 @@ public class CommitController {
     }
 
     @RequestMapping("/del")
-    public Map del(int id){
+    public Map del(int commitId){
         Map result = new HashMap<>();
-        if(this.biz.delCommitById(id) > 0){
+        if(this.biz.delCommitById(commitId) > 0){
             result.put("isOk",true);
             result.put("msg","删除成功");
         }else{

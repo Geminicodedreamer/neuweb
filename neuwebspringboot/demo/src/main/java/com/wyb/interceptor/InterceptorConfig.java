@@ -11,7 +11,8 @@ public class InterceptorConfig implements WebMvcConfigurer {
     private LoginInterceptor loginInterceptor;
     @Override
     public void addInterceptors(@NotNull InterceptorRegistry registry) {
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/book/*" , "/code/*" , "/commit/*");
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/code/*" , "/commit/*" , "/user/all" , "/user/search" , "/user/update" ,"/user/logout" , "/user/userinfo" , "/user/del");
+
     }
 
     public void setLoginInterceptor(LoginInterceptor loginInterceptor) {

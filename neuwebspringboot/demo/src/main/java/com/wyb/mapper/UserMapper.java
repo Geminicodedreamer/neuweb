@@ -11,7 +11,7 @@ public interface UserMapper {
     @Select("select * from t_user where userId=#{id}")
     public User selectUserById(int id);
 
-    @Select("select * from t_user where userName=#{userName}")
+    @Select("select * from t_user where userName like concat('%', #{userName}, '%')")
     public List<User> selectUserByName(String userName);
 
     @Select("select * from t_user")
@@ -26,6 +26,6 @@ public interface UserMapper {
     @Update("update t_user set tel=#{tel} , loginPwd=#{loginPwd} , userName=#{userName} where userId=#{userId}")
     public int updateUser(User user);
 
-    @Delete("delete u , c FROM t_user as u LEFT JOIN t_code as c ON u.userId = c.userId where u.userId= #{userId}")
+    @Delete("delete u , c , m from t_user as u left join t_code as c ON u.userId = c.userId left join t_commit as m on u.userId = m.userId where u.userId= #{userId}")
     public int deleteUser(int userId);
 }

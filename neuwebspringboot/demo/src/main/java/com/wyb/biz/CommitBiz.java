@@ -15,15 +15,18 @@ public class CommitBiz {
     public List<Commit> selectCommitsAll(){
         return commitMapper.selectCommitsAll();
     }
-    public List<Commit> selectCommitsByUserId(int userId)
+    public List<Commit> selectCommitsByContext(String context)
     {
-        return commitMapper.selectCommitsByUserId(userId);
+        return commitMapper.selectCommitsByContext(context);
     }
-    public int delCommitById(int comId){
-        return commitMapper.delCommitById(comId);
+    public int delCommitById(int commitId){
+        return commitMapper.delCommitById(commitId);
     }
     public int insertCommit(Commit commit){
         return commitMapper.insertCommit(commit);
+    }
+    public int updateCommit(String context , int commitId){
+        return commitMapper.updateCommit(context , commitId);
     }
 
 }

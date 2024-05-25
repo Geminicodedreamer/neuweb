@@ -16,10 +16,10 @@ public interface CodeMapper {
     @Select("select * from t_code where codeId=#{id}")
     Code selectCodeById(int id);
 
-    @Select("select * from t_code where title=#{title}")
+    @Select("select * from t_code where title like concat('%', #{title}, '%')")
     List<Code> selectCodeByTitle(String title);
 
-    @Select("select * from t_code where title=#{title} and userId=#{userId}")
+    @Select("select * from t_code where title like concat('%', #{title}, '%') and userId=#{userId}")
     List<Code> selectUserCodeByTitle(@Param("userId") int userId , @Param("title") String title);
 
     @Insert("insert into t_code values(null , #{title} , #{code} , #{userId})")

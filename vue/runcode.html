@@ -48,10 +48,10 @@ background-repeat: no-repeat;">
                         <el-button type="primary" @click.prevent="RunCode()" plain>运行</el-button>
                     </el-form-item>
                     <el-form-item label="输入">
-                        <el-input type="textarea" v-model="codeForm.input"></el-input>
+                        <el-input type="textarea" :rows="4" v-model="codeForm.input"></el-input>
                     </el-form-item>
                     <el-form-item label="输出">
-                        <el-input type="textarea" v-model="codeForm.output"></el-input>
+                        <el-input type="textarea" :rows="12" v-model="codeForm.output"></el-input>
                     </el-form-item>
                 </el-form>
             </el-card>

@@ -57,6 +57,17 @@
 							message: '手机号不能为空',
 							trigger: 'blur'
 						}
+						,
+						{
+							validator: function(rule, value, callback) {
+							if (/^1[34578]\d{9}$/.test(value) == false) {
+								callback(new Error("手机号格式错误"));
+							} else {
+								callback();
+							}
+							},
+							trigger: "blur"
+						}
 						],
 						loginPwd: [{
 							required: true,
@@ -93,6 +104,13 @@
 						});
 						
 					}
+				},
+				created(){
+					axios.get('http://localhost:8000/user/islogin').then(res => {
+                        if(res.data.isOk) {
+                            location.href = 'codelist.html';
+                        }
+                    });
 				}
 			})
 		</script>

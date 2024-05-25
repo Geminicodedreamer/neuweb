@@ -221,6 +221,10 @@
                             location.href = "userinfo.html";
                         },
                         search(){
+                            if(this.search_title === ""){
+                                this.show();
+                                return;
+                            }
                             let fd = new FormData();
                             fd.append('title', this.search_title);
                             axios.post('http://localhost:8000/code/us' , fd).then(res => {

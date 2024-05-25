@@ -41,7 +41,7 @@
                 <el-card class="box-card" style="width: 60%; background-color: rgba(255, 255, 255, 0.5); border: none;">
                     <div style="display: flex; justify-content: flex-end; align-items: center;">
                         <el-input
-                            placeholder="请输入评论的用户id"
+                            placeholder="请输入查找内容"
                             v-model="search_id"
                             style="width: 30%;"
                         >
@@ -216,7 +216,7 @@
                                 return;
                             }
                             let fd = new FormData();
-                            fd.append('userId', this.search_id);
+                            fd.append('context', this.search_id);
                             axios.post('http://localhost:8000/commit/search' , fd).then(res => {
                                 if (res.data.isOk) {
                                     this.commits = res.data.commits;
